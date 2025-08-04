@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FundVerso - Editar Peça</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ===================================================================
+           1. Variáveis Globais e Reset (Padrão FundVerso)
+           =================================================================== */
+        :root {
+            --azul-eletrico: #00aaff;
+            --azul-fundo-escuro: #0d1a2e;
+            --azul-fundo-medio: #1a293f;
+            --cinza-texto-claro: #cdd5e0;
+            --cinza-texto-medio: #a0aec0;
+            --branco: #ffffff;
+            --verde-sucesso: #28a745;
+            --vermelho-erro: #e53e3e;
+            --sombra-brilhante: 0 0 25px rgba(0, 170, 255, 0.3);
+            --radius-padrao: 12px;
+            --radius-card: 20px;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--azul-fundo-escuro);
+            color: var(--cinza-texto-claro);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .background-glow {
+            position: fixed; top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 170, 255, 0.1), transparent 40%);
+            pointer-events: none; z-index: -1;
+            transition: transform 0.2s ease-out;
+        }
+        
+        /* ===================================================================
+           2. Estrutura e Formulário
+           =================================================================== */
+        .container {
+            width: 100%;
+            max-width: 700px;
+        }
+        
+        .form-card {
+            background-color: var(--azul-fundo-medio);
+            padding: 40px;
+            border-radius: var(--radius-card);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 170, 255, 0.2);
+        }
+
+        h1 {
+            color: var(--branco);
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        .form-edicao {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 500;
+            font-size: 1rem;
+            color: var(--cinza-texto-claro);
+        }
+
+        input {
+            width: 100%;
+            padding: 15px 20px;
+            border-radius: var(--radius-padrao);
+            border: 1px solid var(--azul-fundo-escuro);
+            background: var(--azul-fundo-escuro);
+            color: var(--cinza-texto-claro);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input::placeholder {
+            color: var(--cinza-texto-medio);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--azul-eletrico);
+            box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
+        }
+        
+        input[type="date"] {
+           color-scheme: dark;
+        }
+
+        /* ===================================================================
+           3. Botões
+           =================================================================== */
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .cta-button {
+            background: var(--azul-eletrico);
+            color: var(--branco);
+            box-shadow: var(--sombra-brilhante);
+        }
+        .cta-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 0 35px rgba(0, 170, 255, 0.5);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--cinza-texto-medio);
+            border: 1px solid var(--cinza-texto-medio);
+        }
+        .btn-secondary:hover {
+            background-color: var(--azul-eletrico);
+            border-color: var(--azul-eletrico);
+            color: var(--branco);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0, 170, 255, 0.2);
+        }
+
+        /* ===================================================================
+           4. Mensagem de Feedback (Toast)
+           =================================================================== */
+        .msg-feedback {
+            position: fixed;
+            top: 25px; right: 25px;
+            color: var(--branco); padding: 16px 22px;
+            border-radius: var(--radius-padrao);
+            background-color: var(--azul-fundo-medio);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            font-weight: 500; z-index: 1000;
+            opacity: 0; transform: translateY(-20px);
+            pointer-events: none; transition: opacity 0.3s ease, transform 0.3s ease;
+            border-left: 5px solid;
+        }
+        .msg-feedback.show { opacity: 1; transform: translateY(0); }
+        .msg-feedback.success { border-color: var(--verde-sucesso); }
+        .msg-feedback.error { border-color: var(--vermelho-erro); }
+
+    </style>
+</head>
+<body>
+    <div class="background-glow"></div>
+
+    <main class="container">
+        <div class="form-card">
+            <h1>Editar Peça</h1>
+            
+            <form id="formEditar" class="form-edicao">
+                <div class="form-group">
+                    <label for="nome">Nome da Peça</label>
+                    <input type="text" id="nome" required>
+                </div>
+                <div class="form-group">
+                    <label for="descricao">Descrição</label>
+                    <input type="text" id="descricao" required>
+                </div>
+                <div class="form-group">
+                    <label for="estoqueInicial">Estoque Inicial</label>
+                    <input type="number" id="estoqueInicial" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="valor">Valor (R$)</label>
+                    <input type="number" id="valor" min="0" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="dataCadastro">Data de Cadastro</label>
+                    <input type="date" id="dataCadastro" required>
+                </div>
+
+                <div class="form-actions">
+                    <a href="lista_pecas.html" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn cta-button">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <div id="feedback" class="msg-feedback"></div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // --- Efeito de brilho no fundo ---
+        const glow = document.querySelector('.background-glow');
+        if (glow) {
+            document.body.addEventListener('mousemove', (e) => {
+                const { clientX, clientY } = e;
+                glow.style.background = `radial-gradient(circle at ${clientX}px ${clientY}px, rgba(0, 170, 255, 0.1), transparent 40%)`;
+            });
+        }
+    
+        // --- REFERÊNCIAS E ESTADO ---
+        const form = document.getElementById('formEditar');
+        const feedbackDiv = document.getElementById('feedback');
+        const nomeInput = document.getElementById('nome');
+        const descricaoInput = document.getElementById('descricao');
+        const estoqueInicialInput = document.getElementById('estoqueInicial');
+        const valorInput = document.getElementById('valor');
+        const dataCadastroInput = document.getElementById('dataCadastro');
+        
+        let idPeca = null;
+
+        // --- FUNÇÕES AUXILIARES ---
+        const mostrarFeedback = (mensagem, tipo = 'success') => {
+            feedbackDiv.textContent = mensagem;
+            feedbackDiv.className = `msg-feedback ${tipo} show`;
+            setTimeout(() => { feedbackDiv.classList.remove('show'); }, 2500);
+        };
+
+        const redirecionarParaLista = () => {
+            window.location.href = 'lista_pecas.html';
+        };
+        
+        const preencherFormulario = (peca) => {
+            nomeInput.value = peca.nome || '';
+            descricaoInput.value = peca.descricao || '';
+            estoqueInicialInput.value = peca.estoqueInicial !== undefined ? peca.estoqueInicial : '';
+            valorInput.value = peca.valor !== undefined ? peca.valor : '';
+            dataCadastroInput.value = peca.dataCadastro || '';
+        };
+
+        // --- LÓGICA PRINCIPAL ---
+        const handleSalvar = (event) => {
+            event.preventDefault();
+            
+            const pecas = JSON.parse(localStorage.getItem('cadastrosGerais')) || [];
+            const index = pecas.findIndex(p => p.id === idPeca);
+
+            if (index === -1) {
+                mostrarFeedback('Erro: Peça não encontrada.', 'error');
+                setTimeout(redirecionarParaLista, 2000);
+                return;
+            }
+
+            pecas[index] = {
+                ...pecas[index],
+                nome: nomeInput.value.trim(),
+                descricao: descricaoInput.value.trim(),
+                estoqueInicial: parseInt(estoqueInicialInput.value, 10) || 0,
+                valor: parseFloat(valorInput.value) || 0,
+                dataCadastro: dataCadastroInput.value,
+            };
+
+            localStorage.setItem('cadastrosGerais', JSON.stringify(pecas));
+            mostrarFeedback('Peça atualizada com sucesso!', 'success');
+            setTimeout(redirecionarParaLista, 2000);
+        };
+
+        // --- INICIALIZAÇÃO ---
+        const iniciar = () => {
+            const params = new URLSearchParams(window.location.search);
+            idPeca = params.get('id');
+
+            if (!idPeca) {
+                mostrarFeedback('ID da peça não fornecido.', 'error');
+                setTimeout(redirecionarParaLista, 2000);
+                return;
+            }
+            
+            const pecas = JSON.parse(localStorage.getItem('cadastrosGerais')) || [];
+            const pecaParaEditar = pecas.find(p => p.id === idPeca);
+
+            if (!pecaParaEditar) {
+                mostrarFeedback('Peça não encontrada!', 'error');
+                setTimeout(redirecionarParaLista, 2000);
+                return;
+            }
+            
+            preencherFormulario(pecaParaEditar);
+            form.addEventListener('submit', handleSalvar);
+        };
+
+        iniciar();
+    });
+    </script>
+</body>
+</html>

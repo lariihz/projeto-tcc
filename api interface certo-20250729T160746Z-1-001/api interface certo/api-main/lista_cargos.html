@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FundVerso - Lista de Cargos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ===================================================================
+           1. Variáveis Globais e Reset (Padrão FundVerso)
+           =================================================================== */
+        :root {
+            --azul-eletrico: #00aaff;
+            --azul-fundo-escuro: #0d1a2e;
+            --azul-fundo-medio: #1a293f;
+            --cinza-texto-claro: #cdd5e0;
+            --cinza-texto-medio: #a0aec0;
+            --branco: #ffffff;
+            --verde-sucesso: #28a745;
+            --vermelho-erro: #e53e3e;
+            --sombra-brilhante: 0 0 25px rgba(0, 170, 255, 0.2);
+            --radius-padrao: 12px;
+            --radius-card: 20px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--azul-fundo-escuro);
+            color: var(--cinza-texto-claro);
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        .background-glow {
+            position: fixed; top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 170, 255, 0.1), transparent 40%);
+            pointer-events: none; z-index: -1;
+            transition: transform 0.2s ease-out;
+        }
+        
+        /* ===================================================================
+           2. Estrutura Principal
+           =================================================================== */
+        .page-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--azul-fundo-medio);
+            padding: 40px;
+            border-radius: var(--radius-card);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 170, 255, 0.2);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(205, 213, 224, 0.1);
+            padding-bottom: 25px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        h1 {
+            color: var(--branco);
+            font-size: 2rem;
+            font-weight: 600;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        /* ===================================================================
+           3. Botões
+           =================================================================== */
+        .btn {
+            padding: 12px 25px; border: none;
+            border-radius: 50px; font-weight: 600;
+            font-size: 0.95rem; cursor: pointer;
+            transition: all 0.3s ease; text-decoration: none;
+            text-align: center; display: inline-block;
+        }
+        
+        .cta-button {
+            background: var(--azul-eletrico); color: var(--branco);
+            box-shadow: var(--sombra-brilhante);
+        }
+        .cta-button:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 0 35px rgba(0, 170, 255, 0.5);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--cinza-texto-medio);
+            border: 1px solid var(--cinza-texto-medio);
+        }
+        .btn-secondary:hover {
+            background-color: var(--azul-eletrico);
+            border-color: var(--azul-eletrico);
+            color: var(--branco);
+            transform: translateY(-3px);
+        }
+        
+        /* ===================================================================
+           4. Tabela de Dados
+           =================================================================== */
+        .tabela-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 16px; text-align: left; border-bottom: 1px solid rgba(205, 213, 224, 0.1); }
+        
+        th {
+            background-color: var(--azul-fundo-escuro);
+            color: var(--branco);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background-color: rgba(255, 255, 255, 0.03); }
+
+        .acoes { display: flex; gap: 10px; }
+        .btn-acao {
+            border-radius: var(--radius-padrao);
+            color: white; padding: 8px 14px;
+            font-size: 0.85rem;
+        }
+        .btn-acao.editar { background-color: var(--azul-eletrico); }
+        .btn-acao.excluir { background-color: var(--vermelho-erro); }
+        .btn-acao:hover { transform: scale(1.1); }
+        
+        /* ===================================================================
+           5. Mensagens e Estados
+           =================================================================== */
+        .sem-dados { text-align: center; padding: 50px; font-weight: 500; color: var(--cinza-texto-medio); font-size: 1.1rem; }
+        .hidden { display: none; }
+
+        .msg-feedback {
+            position: fixed; top: 25px; right: 25px;
+            color: var(--branco); padding: 16px 22px;
+            border-radius: var(--radius-padrao);
+            background-color: var(--azul-fundo-medio);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            font-weight: 500; z-index: 1000;
+            opacity: 0; transform: translateY(-20px);
+            pointer-events: none; transition: all 0.3s ease;
+            border-left: 5px solid;
+        }
+        .msg-feedback.show { opacity: 1; transform: translateY(0); }
+        .msg-feedback.success { border-color: var(--verde-sucesso); }
+    </style>
+</head>
+<body>
+    <div class="background-glow"></div>
+
+    <main class="page-container">
+        <header>
+            <h1>Lista de Cargos</h1>
+            <div class="header-actions">
+                <a href="index.html" class="btn btn-secondary">← Voltar ao Início</a>
+                <a href="cadastro_cargos.html" class="btn cta-button">Adicionar Novo Cargo</a>
+            </div>
+        </header>
+
+        <div id="tabela-container" class="tabela-wrapper hidden">
+            <table id="tabelaCargos">
+                <thead>
+                    <tr>
+                        <th>Nome do Cargo</th>
+                        <th width="150px">Ações</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div id="semDadosMsg" class="sem-dados hidden">
+            <p>Nenhum cargo cadastrado. Clique em "Adicionar Novo Cargo" para começar.</p>
+        </div>
+    </main>
+
+    <div id="feedback" class="msg-feedback"></div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        const glow = document.querySelector('.background-glow');
+        if (glow) {
+            document.body.addEventListener('mousemove', (e) => {
+                const { clientX, clientY } = e;
+                glow.style.background = `radial-gradient(circle at ${clientX}px ${clientY}px, rgba(0, 170, 255, 0.1), transparent 40%)`;
+            });
+        }
+        
+        const tabelaContainer = document.getElementById('tabela-container');
+        const tabelaBody = document.querySelector('#tabelaCargos tbody');
+        const semDadosMsg = document.getElementById('semDadosMsg');
+        const feedbackDiv = document.getElementById('feedback');
+
+        const mostrarFeedback = (mensagem, tipo = 'success') => {
+            feedbackDiv.textContent = mensagem;
+            feedbackDiv.className = `msg-feedback ${tipo} show`;
+            setTimeout(() => { feedbackDiv.classList.remove('show'); }, 3000);
+        };
+        
+        const getData = (key) => JSON.parse(localStorage.getItem(key)) || [];
+        const setData = (key, data) => localStorage.setItem(key, JSON.stringify(data));
+
+        const handleExcluirCargo = (id, nome) => {
+            if (!confirm(`Tem certeza que deseja excluir o cargo "${nome}"?`)) return;
+            
+            let cargos = getData('cargos');
+            const cargosAtualizados = cargos.filter(cargo => cargo.id !== id);
+            setData('cargos', cargosAtualizados);
+            
+            mostrarFeedback('Cargo excluído com sucesso!');
+            renderizarTabela();
+        };
+        
+        const renderizarTabela = () => {
+            const cargos = getData('cargos');
+            tabelaBody.innerHTML = '';
+            
+            if (cargos.length === 0) {
+                tabelaContainer.classList.add('hidden');
+                semDadosMsg.classList.remove('hidden');
+                return;
+            }
+            
+            const linhasHtml = cargos.map(cargo => `
+                <tr>
+                    <td>${cargo.nome}</td>
+                    <td>
+                        <div class="acoes">
+                            <a href="editar_cargo.html?id=${cargo.id}" class="btn btn-acao editar">Editar</a>
+                            <button class="btn btn-acao excluir" data-id="${cargo.id}" data-nome="${cargo.nome}">Excluir</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            
+            tabelaBody.innerHTML = linhasHtml;
+            tabelaContainer.classList.remove('hidden');
+            semDadosMsg.classList.add('hidden');
+        };
+
+        tabelaBody.addEventListener('click', (event) => {
+            if (event.target.classList.contains('excluir')) {
+                const id = event.target.dataset.id;
+                const nome = event.target.dataset.nome;
+                handleExcluirCargo(id, nome);
+            }
+        });
+
+        renderizarTabela();
+    });
+    </script>
+</body>
+</html>

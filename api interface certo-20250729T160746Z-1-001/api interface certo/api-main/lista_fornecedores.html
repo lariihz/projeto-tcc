@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FundVerso - Lista de Fornecedores</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ===================================================================
+           1. Variáveis Globais e Reset (Padrão FundVerso)
+           =================================================================== */
+        :root {
+            --azul-eletrico: #00aaff;
+            --azul-fundo-escuro: #0d1a2e;
+            --azul-fundo-medio: #1a293f;
+            --cinza-texto-claro: #cdd5e0;
+            --cinza-texto-medio: #a0aec0;
+            --branco: #ffffff;
+            --verde-sucesso: #28a745;
+            --vermelho-erro: #e53e3e;
+            --sombra-brilhante: 0 0 25px rgba(0, 170, 255, 0.2);
+            --radius-padrao: 12px;
+            --radius-card: 20px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--azul-fundo-escuro);
+            color: var(--cinza-texto-claro);
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        .background-glow {
+            position: fixed; top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 170, 255, 0.1), transparent 40%);
+            pointer-events: none; z-index: -1;
+            transition: transform 0.2s ease-out;
+        }
+        
+        /* ===================================================================
+           2. Estrutura Principal
+           =================================================================== */
+        .page-container {
+            max-width: 1200px; /* Aumentado para comportar mais colunas */
+            margin: 0 auto;
+            background-color: var(--azul-fundo-medio);
+            padding: 40px;
+            border-radius: var(--radius-card);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 170, 255, 0.2);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(205, 213, 224, 0.1);
+            padding-bottom: 25px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        h1 {
+            color: var(--branco);
+            font-size: 2rem;
+            font-weight: 600;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        /* ===================================================================
+           3. Botões
+           =================================================================== */
+        .btn {
+            padding: 12px 25px; border: none;
+            border-radius: 50px; font-weight: 600;
+            font-size: 0.95rem; cursor: pointer;
+            transition: all 0.3s ease; text-decoration: none;
+            text-align: center; display: inline-block;
+        }
+        
+        .cta-button {
+            background: var(--azul-eletrico); color: var(--branco);
+            box-shadow: var(--sombra-brilhante);
+        }
+        .cta-button:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 0 35px rgba(0, 170, 255, 0.5);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--cinza-texto-medio);
+            border: 1px solid var(--cinza-texto-medio);
+        }
+        .btn-secondary:hover {
+            background-color: var(--azul-eletrico);
+            border-color: var(--azul-eletrico);
+            color: var(--branco);
+            transform: translateY(-3px);
+        }
+
+        .btn-danger {
+            background-color: var(--vermelho-erro);
+            color: var(--branco);
+            border: 1px solid var(--vermelho-erro);
+        }
+        .btn-danger:hover {
+            background-color: #c53030;
+            border-color: #c53030;
+            transform: translateY(-2px);
+        }
+        
+        /* ===================================================================
+           4. Tabela de Dados
+           =================================================================== */
+        .tabela-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 16px; text-align: left; border-bottom: 1px solid rgba(205, 213, 224, 0.1); vertical-align: middle; }
+        
+        th {
+            background-color: var(--azul-fundo-escuro);
+            color: var(--branco);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background-color: rgba(255, 255, 255, 0.03); }
+
+        .acoes { display: flex; gap: 10px; }
+        .btn-acao {
+            border: none;
+            text-decoration: none;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            border-radius: var(--radius-padrao);
+            color: white; padding: 8px 14px;
+            font-size: 0.85rem;
+            transition: transform 0.2s ease;
+        }
+        .btn-acao.editar { background-color: var(--azul-eletrico); }
+        .btn-acao.excluir { background-color: var(--vermelho-erro); }
+        .btn-acao:hover { transform: scale(1.1); }
+        
+        /* Estilos para células com mais de uma linha */
+        .celula-contato, .celula-endereco {
+            line-height: 1.5;
+        }
+        .celula-contato .subtexto, .celula-endereco .subtexto {
+            font-size: 0.85em;
+            color: var(--cinza-texto-medio);
+        }
+        
+        /* ===================================================================
+           5. Mensagens e Estados
+           =================================================================== */
+        .sem-dados { text-align: center; padding: 50px; font-weight: 500; color: var(--cinza-texto-medio); font-size: 1.1rem; }
+        .hidden { display: none; }
+
+        .msg-feedback {
+            position: fixed; top: 25px; right: 25px;
+            color: var(--branco); padding: 16px 22px;
+            border-radius: var(--radius-padrao);
+            background-color: var(--azul-fundo-medio);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            font-weight: 500; z-index: 2100;
+            opacity: 0; transform: translateY(-20px);
+            pointer-events: none; transition: all 0.3s ease;
+            border-left: 5px solid;
+        }
+        .msg-feedback.show { opacity: 1; transform: translateY(0); }
+        .msg-feedback.success { border-color: var(--verde-sucesso); }
+
+        /* ===================================================================
+           6. Modal de Confirmação
+           =================================================================== */
+        .modal-backdrop {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-backdrop.show { opacity: 1; pointer-events: all; }
+
+        .modal-dialogo {
+            background-color: var(--azul-fundo-medio);
+            padding: 40px;
+            border-radius: var(--radius-card);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 170, 255, 0.2);
+            width: 90%; max-width: 500px;
+            text-align: center;
+            transform: scale(0.95) translateY(-10px);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .modal-backdrop.show .modal-dialogo { transform: scale(1) translateY(0); }
+
+        .modal-dialogo h2 {
+            color: var(--branco); font-weight: 600;
+            font-size: 1.5rem; margin-bottom: 15px;
+        }
+        .modal-dialogo p {
+            color: var(--cinza-texto-claro);
+            margin-bottom: 30px; line-height: 1.6;
+        }
+        .modal-dialogo p strong { color: var(--azul-eletrico); font-weight: 600; }
+        .modal-actions { display: flex; justify-content: center; gap: 20px; }
+    </style>
+</head>
+<body>
+    <div class="background-glow"></div>
+
+    <main class="page-container">
+        <header>
+            <h1>Fornecedores Cadastrados</h1>
+            <div class="header-actions">
+                <a href="index.html" class="btn btn-secondary">← Voltar ao Dashboard</a>
+                <a href="cadastro_fornecedores.html" class="btn cta-button">Novo Fornecedor</a>
+            </div>
+        </header>
+
+        <div id="tabela-container" class="tabela-wrapper hidden">
+            <table id="tabelaFornecedores">
+                <thead>
+                    <tr>
+                        <th>Nome / Razão Social</th>
+                        <th>CNPJ</th>
+                        <th>Contato</th>
+                        <th>Endereço</th>
+                        <th width="180px">Ações</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div id="semDadosMsg" class="sem-dados hidden">
+            <p>Nenhum fornecedor cadastrado. Clique em "Novo Fornecedor" para começar.</p>
+        </div>
+    </main>
+
+    <div id="feedback" class="msg-feedback"></div>
+
+    <div id="modalConfirmacao" class="modal-backdrop">
+        <div class="modal-dialogo">
+            <h2>Confirmar Exclusão</h2>
+            <p>Tem certeza que deseja excluir <strong id="itemParaExcluir"></strong>? Esta ação não pode ser desfeita.</p>
+            <div class="modal-actions">
+                <button id="btnCancelarExclusao" class="btn btn-secondary">Cancelar</button>
+                <button id="btnConfirmarExclusao" class="btn btn-danger">Confirmar Exclusão</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        // --- Elementos da Página ---
+        const glow = document.querySelector('.background-glow');
+        const tabelaContainer = document.getElementById('tabela-container');
+        const tabelaBody = document.querySelector('#tabelaFornecedores tbody');
+        const semDadosMsg = document.getElementById('semDadosMsg');
+        const feedbackDiv = document.getElementById('feedback');
+        
+        // --- Elementos do Modal ---
+        const modalConfirmacao = document.getElementById('modalConfirmacao');
+        const btnConfirmarExclusao = document.getElementById('btnConfirmarExclusao');
+        const btnCancelarExclusao = document.getElementById('btnCancelarExclusao');
+        const itemParaExcluir = document.getElementById('itemParaExcluir');
+        
+        let acaoConfirmada = null;
+
+        if (glow) {
+            document.body.addEventListener('mousemove', (e) => {
+                const { clientX, clientY } = e;
+                glow.style.background = `radial-gradient(circle at ${clientX}px ${clientY}px, rgba(0, 170, 255, 0.1), transparent 40%)`;
+            });
+        }
+        
+        // --- Funções Utilitárias ---
+        const mostrarFeedback = (mensagem, tipo = 'success') => {
+            feedbackDiv.textContent = mensagem;
+            feedbackDiv.className = `msg-feedback ${tipo} show`;
+            setTimeout(() => { feedbackDiv.classList.remove('show'); }, 3000);
+        };
+        const getData = (key) => JSON.parse(localStorage.getItem(key)) || [];
+        const setData = (key, data) => localStorage.setItem(key, JSON.stringify(data));
+
+        // --- Lógica do Modal ---
+        const abrirModalConfirmacao = (nomeItem, onConfirm) => {
+            itemParaExcluir.innerHTML = `<strong>${nomeItem}</strong>`;
+            acaoConfirmada = onConfirm;
+            modalConfirmacao.classList.add('show');
+        };
+        const fecharModalConfirmacao = () => {
+            modalConfirmacao.classList.remove('show');
+            acaoConfirmada = null;
+        };
+        btnConfirmarExclusao.addEventListener('click', () => {
+            if (typeof acaoConfirmada === 'function') acaoConfirmada();
+            fecharModalConfirmacao();
+        });
+        btnCancelarExclusao.addEventListener('click', fecharModalConfirmacao);
+        modalConfirmacao.addEventListener('click', (event) => {
+            if (event.target === modalConfirmacao) fecharModalConfirmacao();
+        });
+
+        // --- Lógica da Página ---
+        const handleExcluir = (id, nome) => {
+            const executarExclusao = () => {
+                const fornecedores = getData('fornecedores');
+                const fornecedoresAtualizados = fornecedores.filter(f => f.id !== id);
+                setData('fornecedores', fornecedoresAtualizados);
+                
+                mostrarFeedback('Fornecedor excluído com sucesso!');
+                renderizarTabela();
+            };
+
+            abrirModalConfirmacao(`o fornecedor "${nome}"`, executarExclusao);
+        };
+        
+        const renderizarTabela = () => {
+            const fornecedores = getData('fornecedores');
+            tabelaBody.innerHTML = '';
+            
+            if (fornecedores.length === 0) {
+                tabelaContainer.classList.add('hidden');
+                semDadosMsg.classList.remove('hidden');
+                return;
+            }
+            
+            const linhasHtml = fornecedores.map(f => {
+                const contatoHtml = `
+                    <div class="celula-contato">
+                        <span>${f.email || ''}</span>
+                        <div class="subtexto">${f.celular || f.telefone || ''}</div>
+                    </div>
+                `;
+                const enderecoHtml = `
+                    <div class="celula-endereco">
+                        <span>${f.endereco || 'Não informado'}, ${f.numero || 'S/N'}</span>
+                        <div class="subtexto">${f.cep || ''}</div>
+                    </div>
+                `;
+                return `
+                    <tr>
+                        <td>${f.nome}</td>
+                        <td>${f.cnpj || '-'}</td>
+                        <td>${contatoHtml}</td>
+                        <td>${enderecoHtml}</td>
+                        <td>
+                            <div class="acoes">
+                                <a href="editar_fornecedor.html?id=${f.id}" class="btn btn-acao editar">Editar</a>
+                                <button class="btn btn-acao excluir" data-id="${f.id}" data-nome="${f.nome}">Excluir</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            tabelaBody.innerHTML = linhasHtml;
+            tabelaContainer.classList.remove('hidden');
+            semDadosMsg.classList.add('hidden');
+        };
+
+        // --- Event Listener Principal ---
+        tabelaBody.addEventListener('click', (event) => {
+            if (event.target.classList.contains('excluir')) {
+                const id = event.target.dataset.id;
+                const nome = event.target.dataset.nome;
+                handleExcluir(id, nome);
+            }
+        });
+
+        // --- Inicialização ---
+        renderizarTabela();
+    });
+    </script>
+</body>
+</html>

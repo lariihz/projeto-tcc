@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FundVerso - Registrar Saída de Peça</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ===================================================================
+           1. Variáveis Globais e Reset (Padrão FundVerso)
+           =================================================================== */
+        :root {
+            --azul-eletrico: #00aaff;
+            --azul-fundo-escuro: #0d1a2e;
+            --azul-fundo-medio: #1a293f;
+            --cinza-texto-claro: #cdd5e0;
+            --cinza-texto-medio: #a0aec0;
+            --branco: #ffffff;
+            --verde-sucesso: #28a745;
+            --vermelho-erro: #e53e3e;
+            --amarelo-aviso: #ffc107;
+            --sombra-brilhante: 0 0 25px rgba(0, 170, 255, 0.2);
+            --radius-padrao: 12px;
+            --radius-card: 20px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--azul-fundo-escuro);
+            color: var(--cinza-texto-claro);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .background-glow {
+            position: fixed; top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 170, 255, 0.1), transparent 40%);
+            pointer-events: none; z-index: -1;
+            transition: transform 0.2s ease-out;
+        }
+        
+        /* ===================================================================
+           2. Estrutura e Formulário
+           =================================================================== */
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        .form-card {
+            background-color: var(--azul-fundo-medio);
+            padding: 40px;
+            border-radius: var(--radius-card);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 170, 255, 0.2);
+        }
+
+        h1 {
+            color: var(--branco);
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 500;
+            font-size: 1rem;
+            color: var(--cinza-texto-claro);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 15px 20px;
+            border-radius: var(--radius-padrao);
+            border: 1px solid var(--azul-fundo-escuro);
+            background: var(--azul-fundo-escuro);
+            color: var(--cinza-texto-claro);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        input::placeholder { color: var(--cinza-texto-medio); }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--azul-eletrico);
+            box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
+        }
+        
+        input[type="date"] { color-scheme: dark; }
+        select {
+            appearance: none; -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23a0aec0' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em;
+            cursor: pointer;
+        }
+        select option { background: var(--azul-fundo-escuro); color: var(--cinza-texto-claro); }
+
+        /* ===================================================================
+           3. Alerta de Estoque
+           =================================================================== */
+        .alerta-estoque {
+            padding: 12px 15px;
+            border-radius: var(--radius-padrao);
+            font-weight: 500;
+            display: none;
+            margin-top: 5px;
+            border-left: 5px solid;
+            font-size: 0.9rem;
+        }
+        .alerta-estoque.show { display: block; }
+        .alerta-estoque.erro {
+            background-color: rgba(229, 62, 62, 0.15);
+            border-color: var(--vermelho-erro);
+            color: var(--vermelho-erro);
+        }
+        .alerta-estoque.aviso {
+            background-color: rgba(255, 193, 7, 0.15);
+            border-color: var(--amarelo-aviso);
+            color: var(--amarelo-aviso);
+        }
+
+        /* ===================================================================
+           4. Botões
+           =================================================================== */
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 14px 30px; border: none;
+            border-radius: 50px; font-weight: 600;
+            font-size: 1rem; cursor: pointer;
+            transition: all 0.3s ease; text-decoration: none;
+            text-align: center; display: inline-block;
+            flex-grow: 1;
+        }
+
+        .cta-button {
+            background: var(--azul-eletrico); color: var(--branco);
+            box-shadow: var(--sombra-brilhante);
+        }
+        .cta-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 0 35px rgba(0, 170, 255, 0.5);
+        }
+        
+        .btn:disabled {
+            background-color: var(--azul-fundo-escuro);
+            color: var(--cinza-texto-medio);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+            border: 1px solid var(--cinza-texto-medio);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--cinza-texto-medio);
+            border: 1px solid var(--cinza-texto-medio);
+        }
+        .btn-secondary:hover {
+            background-color: var(--azul-eletrico);
+            border-color: var(--azul-eletrico);
+            color: var(--branco);
+            transform: translateY(-3px);
+        }
+
+        /* ===================================================================
+           5. Mensagem de Feedback (Toast)
+           =================================================================== */
+        .msg-feedback {
+            position: fixed; top: 25px; right: 25px;
+            color: var(--branco); padding: 16px 22px;
+            border-radius: var(--radius-padrao);
+            background-color: var(--azul-fundo-medio);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            font-weight: 500; z-index: 1000;
+            opacity: 0; transform: translateY(-20px);
+            pointer-events: none; transition: all 0.3s ease;
+            border-left: 5px solid;
+        }
+        .msg-feedback.show { opacity: 1; transform: translateY(0); }
+        .msg-feedback.success { border-color: var(--verde-sucesso); }
+        .msg-feedback.error { border-color: var(--vermelho-erro); }
+    </style>
+</head>
+<body>
+    <div class="background-glow"></div>
+
+    <main class="container">
+        <div class="form-card">
+            <h1>Registrar Saída de Peça</h1>
+            <form id="formSaida">
+                <div class="form-group">
+                    <label for="selectPeca">Peça</label>
+                    <select id="selectPeca" required>
+                        <option value="" disabled selected>Selecione uma peça...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="quantidade">Quantidade</label>
+                    <input type="number" id="quantidade" placeholder="Ex: 10" min="1" required />
+                </div>
+                <div class="form-group">
+                    <label for="motivo">Motivo da Saída (Opcional)</label>
+                    <input type="text" id="motivo" placeholder="Ex: Manutenção da máquina X" />
+                </div>
+                <div class="form-group">
+                    <label for="dataSaida">Data da Saída</label>
+                    <input type="date" id="dataSaida" required />
+                </div>
+                <div id="alertaEstoque" class="alerta-estoque"></div>
+                <div class="form-actions">
+                    <a href="lista_Saida.html" class="btn btn-secondary">Ver Histórico</a>
+                    <button type="submit" class="btn cta-button">Salvar Saída</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <div id="feedback" class="msg-feedback"></div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const glow = document.querySelector('.background-glow');
+        if (glow) {
+            document.body.addEventListener('mousemove', (e) => {
+                const { clientX, clientY } = e;
+                glow.style.background = `radial-gradient(circle at ${clientX}px ${clientY}px, rgba(0, 170, 255, 0.1), transparent 40%)`;
+            });
+        }
+
+        const ESTOQUE_MINIMO = 200;
+        const formSaida = document.getElementById('formSaida');
+        const selectPeca = document.getElementById('selectPeca');
+        const quantidadeInput = document.getElementById('quantidade');
+        const motivoInput = document.getElementById('motivo');
+        const dataSaidaInput = document.getElementById('dataSaida');
+        const alertaEstoqueDiv = document.getElementById('alertaEstoque');
+        const feedbackDiv = document.getElementById('feedback');
+        const submitButton = formSaida.querySelector('button[type="submit"]');
+
+        const getData = (key) => JSON.parse(localStorage.getItem(key)) || [];
+
+        const mostrarFeedback = (mensagem, tipo = 'success') => {
+            feedbackDiv.textContent = mensagem;
+            feedbackDiv.className = `msg-feedback ${tipo} show`;
+            setTimeout(() => { feedbackDiv.classList.remove('show'); }, 3000);
+        };
+
+        const resetarFormulario = () => {
+            formSaida.reset();
+            dataSaidaInput.value = new Date().toISOString().split('T')[0];
+            alertaEstoqueDiv.classList.remove('show', 'aviso', 'erro');
+            submitButton.disabled = false; // Garante que o botão seja reativado
+            selectPeca.focus();
+        };
+        
+        const carregarPecas = () => {
+            const pecas = getData('cadastrosGerais');
+            if (pecas.length === 0) {
+                const option = document.createElement('option');
+                option.textContent = 'Nenhuma peça cadastrada';
+                option.disabled = true;
+                selectPeca.appendChild(option);
+                submitButton.disabled = true;
+                return;
+            }
+            pecas.forEach(peca => {
+                const option = document.createElement('option');
+                option.value = peca.id;
+                option.textContent = `${peca.nome} - ${peca.descricao}`;
+                selectPeca.appendChild(option);
+            });
+        };
+
+        const calcularEstoqueAtual = (pecaId) => {
+            const pecas = getData('cadastrosGerais');
+            const entradas = getData('entradasPecas');
+            const saidas = getData('saidasPecas');
+            const peca = pecas.find(p => p.id === pecaId);
+            if (!peca) return 0;
+
+            const estoqueInicial = Number(peca.estoqueInicial) || 0;
+            const totalEntradas = entradas.filter(e => e.pecaId === pecaId).reduce((soma, e) => soma + Number(e.quantidade), 0);
+            const totalSaidas = saidas.filter(s => s.pecaId === pecaId).reduce((soma, s) => soma + Number(s.quantidade), 0);
+            return estoqueInicial + totalEntradas - totalSaidas;
+        };
+
+        const verificarEstoque = () => {
+            const pecaId = selectPeca.value;
+            const quantidadeSaida = Number(quantidadeInput.value);
+            alertaEstoqueDiv.classList.remove('show', 'aviso', 'erro');
+            submitButton.disabled = false; // Reativa o botão por padrão
+            
+            if (!pecaId || isNaN(quantidadeSaida) || quantidadeSaida <= 0) return;
+            
+            const estoqueAtual = calcularEstoqueAtual(pecaId);
+            const estoqueRestante = estoqueAtual - quantidadeSaida;
+
+            if (quantidadeSaida > estoqueAtual) {
+                alertaEstoqueDiv.textContent = `🚫 Estoque insuficiente! Total disponível: ${estoqueAtual}`;
+                alertaEstoqueDiv.className = 'alerta-estoque show erro';
+                submitButton.disabled = true; // Desativa o botão
+            } else if (estoqueRestante < ESTOQUE_MINIMO) {
+                alertaEstoqueDiv.textContent = `⚠️ Atenção! O estoque ficará com ${estoqueRestante} unidades (abaixo de ${ESTOQUE_MINIMO}).`;
+                alertaEstoqueDiv.className = 'alerta-estoque show aviso';
+            }
+        };
+        
+        const handleRegistrarSaida = (event) => {
+            event.preventDefault();
+            const pecaId = selectPeca.value;
+            const quantidade = Number(quantidadeInput.value);
+            const motivo = motivoInput.value.trim();
+            const dataSaida = dataSaidaInput.value;
+            const estoqueAtual = calcularEstoqueAtual(pecaId);
+            
+            if (quantidade > estoqueAtual) {
+                mostrarFeedback('Não é possível registrar a saída. Estoque insuficiente.', 'error');
+                verificarEstoque();
+                return;
+            }
+
+            const novaSaida = {
+                id: Date.now().toString(), pecaId, quantidade,
+                motivo: motivo || 'Não informado', dataSaida,
+            };
+
+            const saidas = getData('saidasPecas');
+            saidas.push(novaSaida);
+            localStorage.setItem('saidasPecas', JSON.stringify(saidas));
+
+            mostrarFeedback('Saída registrada com sucesso! ✅', 'success');
+            resetarFormulario();
+        };
+
+        dataSaidaInput.value = new Date().toISOString().split('T')[0];
+        carregarPecas();
+        formSaida.addEventListener('submit', handleRegistrarSaida);
+        selectPeca.addEventListener('change', verificarEstoque);
+        quantidadeInput.addEventListener('input', verificarEstoque);
+    });
+    </script>
+</body>
+</html>

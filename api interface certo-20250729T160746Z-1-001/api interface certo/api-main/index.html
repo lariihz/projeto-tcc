@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Painel de Controle - FundVerso</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* ===================================================================
+       1. Variáveis Globais e Estilos (Padrão FundVerso)
+       =================================================================== */
+    :root {
+      --azul-eletrico: #00aaff;
+      --azul-fundo-escuro: #0d1a2e;
+      --azul-fundo-medio: #1a293f;
+      --cinza-texto-claro: #cdd5e0;
+      --cinza-texto-medio: #a0aec0;
+      --branco: #ffffff;
+      --verde-sucesso: #28a745;
+      --vermelho-alerta: #e53e3e;
+      --amarelo-aviso: #ffc107;
+      --sombra-brilhante: 0 0 15px rgba(0, 170, 255, 0.2);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--azul-fundo-escuro);
+      color: var(--cinza-texto-claro);
+      overflow: hidden;
+    }
+
+    .background-glow {
+        position: fixed; top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background: radial-gradient(circle at 50% 50%, rgba(0, 170, 255, 0.1), transparent 40%);
+        pointer-events: none; z-index: -1;
+        transition: transform 0.2s ease-out;
+    }
+
+    /* ===================================================================
+       2. Barra de Navegação Lateral
+       =================================================================== */
+    nav {
+      width: 250px;
+      background-color: var(--azul-fundo-medio);
+      padding: 25px 15px;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid rgba(0, 170, 255, 0.1);
+      flex-shrink: 0;
+    }
+
+    nav .logo {
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--branco);
+      margin-bottom: 30px;
+      text-align: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--azul-fundo-escuro);
+    }
+
+    nav .menu-items {
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+
+    nav button {
+      background: none;
+      border: none;
+      color: var(--cinza-texto-claro);
+      padding: 14px 18px;
+      margin-bottom: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      text-align: left;
+      border-radius: 12px;
+      transition: all 0.25s ease;
+      cursor: pointer;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    nav button svg {
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+      opacity: 0.8;
+    }
+
+    nav button:hover {
+      background-color: rgba(0, 170, 255, 0.1);
+      color: var(--branco);
+    }
+
+    nav button.active {
+      background-color: var(--azul-eletrico);
+      color: var(--branco);
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(0, 170, 255, 0.25);
+    }
+    
+    nav button.active svg {
+        opacity: 1;
+    }
+
+    nav .logout-button {
+        margin-top: 20px;
+        border-top: 1px solid var(--azul-fundo-escuro);
+        padding-top: 20px;
+    }
+    
+    nav .logout-button button {
+        background-color: rgba(229, 62, 62, 0.1);
+        color: var(--vermelho-alerta);
+    }
+    nav .logout-button button:hover {
+        background-color: var(--vermelho-alerta);
+        color: var(--branco);
+    }
+
+    /* ===================================================================
+       3. Conteúdo Principal
+       =================================================================== */
+    main {
+      flex: 1;
+      padding: 30px 40px;
+      background-color: var(--azul-fundo-escuro);
+      overflow-y: auto;
+    }
+    
+    .header-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--branco);
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      margin-top: 35px;
+      margin-bottom: 20px;
+      font-weight: 500;
+      color: var(--cinza-texto-claro);
+      border-bottom: 1px solid var(--azul-fundo-medio);
+      padding-bottom: 10px;
+    }
+
+    .dashboard-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 25px;
+    }
+
+    .card {
+      background-color: var(--azul-fundo-medio);
+      padding: 25px;
+      border-radius: 16px;
+      border: 1px solid var(--azul-fundo-escuro);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    }
+
+    .card h3 {
+      font-size: 1rem;
+      margin-bottom: 10px;
+      font-weight: 400;
+      color: var(--cinza-texto-medio);
+    }
+
+    .card p {
+      font-size: 2.5rem;
+      font-weight: 600;
+      color: var(--branco);
+    }
+
+    canvas {
+      margin-top: 20px;
+      max-width: 100%;
+    }
+    
+    .alerta-baixo-estoque {
+      background: linear-gradient(90deg, #ffc107, #ff9800);
+      color: #3e2723;
+      padding: 15px 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      box-shadow: 0 2px 10px rgba(255, 179, 0, 0.4);
+      margin-bottom: 15px;
+      font-size: 1rem;
+      line-height: 1.4;
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="background-glow"></div>
+  
+  <nav>
+    <div class="logo">FundVerso</div>
+    <div class="menu-items">
+      <button id="btnDashboard" class="active" onclick="window.location.href='index.html'"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg> Dashboard</button>
+      <button id="btnPecas" onclick="window.location.href='lista_pecas.html'"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" /></svg> Peças</button>
+      <button id="btnEntrada" onclick="window.location.href='lista_entradas.html'"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m0 0l6.75-6.75M12 19.5l-6.75-6.75" /></svg> Registrar Entrada</button>
+      <button id="btnSaida" onclick="window.location.href='lista_Saida.html'"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19.5v-15m0 0l-6.75 6.75M12 4.5l6.75 6.75" /></svg> Registrar Saída</button>
+      <button id="btnPedidos" onclick="window.location.href='lista_pedidos.html'"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H6.75A2.25 2.25 0 004.5 10.5v8.25a2.25 2.25 0 002.25 2.25h9.75a2.25 2.25 0 002.25-2.25V10.5A2.25 2.25 0 0015.75 8.25H12" /></svg> Fazer Pedido</button>
+      
+      <button id="btnFornecedores" onclick="window.location.href='lista_fornecedores.html'"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg> Fornecedores</button>
+      
+      <button id="btnRelatorios" onclick="window.location.href='relatorio_movimentacoes.html'"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" /></svg> Relatórios</button>
+      
+      <button id="btnUsuarios" onclick="window.location.href='cadastro_cargos.html'"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm-3.75 0h.008v.015h-.008V9.375z" /></svg> Usuários</button>
+
+      <button id="btnEstoque" onclick="window.location.href='baixo_estoque.html'"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg> Baixo Estoque </button>
+    </div>
+    <div class="logout-button">
+      <button id="btnSair" onclick="logout()"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" /></svg> Sair</button>
+    </div>
+  </nav>
+
+  <main id="conteudo">
+    <div class="header-main">
+      <h1>Dashboard Principal</h1>
+    </div>
+    
+    <div id="alertasContainer"></div>
+    
+    <div class="dashboard-cards"> 
+      <div class="card">
+        <h3>Total de Peças</h3>
+        <p id="totalPecas">0</p>
+      </div>
+      <div class="card">
+        <h3>Nº de Entradas no Mês</h3>
+        <p id="totalEntradas">0</p>
+      </div>
+      <div class="card">
+        <h3>Nº de Saídas no Mês</h3>
+        <p id="totalSaidas">0</p>
+      </div>
+    </div>
+    
+    <h2>Nº de Movimentações na Semana</h2>
+    <div id="grafico-wrapper" style="position: relative; height:30vh; width:100%;">
+      <canvas id="graficoMovimentacao"></canvas>
+    </div>
+  </main>
+
+  <script>
+    const getData = (key) => JSON.parse(localStorage.getItem(key)) || [];
+
+    function inicializarDashboard() {
+        const pecasData = getData('cadastrosGerais');
+        const entradasData = getData('entradasPecas');
+        const saidasData = getData('saidasPecas');
+
+        document.getElementById('totalPecas').textContent = pecasData.length;
+
+        const hoje = new Date();
+        const mesAtual = hoje.getMonth();
+        const anoAtual = hoje.getFullYear();
+
+        // CORREÇÃO: Conta o número de registros (transações) em vez de somar as quantidades
+        const entradasMes = entradasData.filter(e => {
+            const dataEntrada = new Date(e.dataEntrada + 'T00:00:00'); // Garante consistência de timezone
+            return dataEntrada.getMonth() === mesAtual && dataEntrada.getFullYear() === anoAtual;
+        }).length;
+        
+        const saidasMes = saidasData.filter(s => {
+            const dataSaida = new Date(s.dataSaida + 'T00:00:00'); // Garante consistência de timezone
+            return dataSaida.getMonth() === mesAtual && dataSaida.getFullYear() === anoAtual;
+        }).length;
+
+        document.getElementById('totalEntradas').textContent = entradasMes;
+        document.getElementById('totalSaidas').textContent = saidasMes;
+
+        const dias = [...Array(7)].map((_, i) => {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          return d.toISOString().slice(0, 10);
+        }).reverse();
+
+        // CORREÇÃO: Conta o número de transações por dia para o gráfico
+        const dataEntradas = dias.map(dia => 
+            entradasData.filter(e => e.dataEntrada === dia).length
+        );
+        const dataSaidas = dias.map(dia => 
+            saidasData.filter(s => s.dataSaida === dia).length
+        );
+
+        const ctx = document.getElementById('graficoMovimentacao').getContext('2d');
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: dias.map(d => new Date(d+'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })),
+            datasets: [
+              { label: 'Entradas', data: dataEntradas, backgroundColor: 'rgba(40, 167, 69, 0.7)', borderRadius: 4 },
+              { label: 'Saídas', data: dataSaidas, backgroundColor: 'rgba(229, 62, 62, 0.7)', borderRadius: 4 }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#cdd5e0' }}},
+            scales: { 
+              y: { beginAtZero: true, ticks: { color: '#a0aec0', stepSize: 1 }, grid: { color: 'rgba(205, 213, 224, 0.1)' }},
+              x: { ticks: { color: '#a0aec0' }, grid: { display: false }}
+            }
+          }
+        });
+        
+        carregarAlertasEstoqueBaixo();
+    }
+
+    function carregarAlertasEstoqueBaixo() {
+        const ESTOQUE_MINIMO = 200;
+        const pecas = getData('cadastrosGerais');
+        const entradas = getData('entradasPecas');
+        const saidas = getData('saidasPecas');
+        const estoques = new Map();
+
+        pecas.forEach(p => estoques.set(p.id, Number(p.estoqueInicial) || 0));
+        entradas.forEach(e => estoques.set(e.pecaId, (estoques.get(e.pecaId) || 0) + Number(e.quantidade)));
+        saidas.forEach(s => estoques.set(s.pecaId, (estoques.get(s.pecaId) || 0) - Number(s.quantidade)));
+        
+        const pecasBaixoEstoque = pecas.filter(p => (estoques.get(p.id) || 0) < ESTOQUE_MINIMO);
+
+        const alertasContainer = document.getElementById('alertasContainer');
+        alertasContainer.innerHTML = '';
+        pecasBaixoEstoque.forEach(p => {
+          const alerta = document.createElement('div');
+          alerta.classList.add('alerta-baixo-estoque');
+          alerta.innerHTML = `⚠️ <strong>Aviso:</strong> A peça "<em>${p.nome}</em>" está com <strong>estoque baixo</strong> (${estoques.get(p.id)} unidades).`;
+          alertasContainer.appendChild(alerta);
+        });
+    }
+
+    function logout() {
+      localStorage.removeItem('usuarioLogado');
+      window.location.href = 'login.html';
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const glow = document.querySelector('.background-glow');
+      if (glow) {
+        document.body.addEventListener('mousemove', (e) => {
+            const { clientX, clientY } = e;
+            glow.style.background = `radial-gradient(circle at ${clientX}px ${clientY}px, rgba(0, 170, 255, 0.1), transparent 40%)`;
+        });
+      }
+
+      const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
+      if (!usuarioLogado || !usuarioLogado.cargo) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const cargo = usuarioLogado.cargo.toUpperCase();
+      const botoesVisiveisPorCargo = {
+        "GERENTE": ["btnDashboard", "btnPecas", "btnEntrada", "btnSaida", "btnPedidos", "btnFornecedores", "btnRelatorios", "btnUsuarios", "btnEstoque"],
+        "ALMOXARIFE": ["btnDashboard", "btnPecas", "btnEntrada", "btnSaida", "btnPedidos", "btnRelatorios", "btnEstoque"],
+        "FUNCIONARIO": ["btnDashboard", "btnPecas", "btnEstoque", "bntRelatorios"],
+      };
+
+      const todosBotoes = ["btnDashboard", "btnPecas", "btnEntrada", "btnSaida", "btnPedidos", "btnFornecedores", "btnRelatorios", "btnUsuarios", "btnEstoque"];
+      const botoesParaExibir = botoesVisiveisPorCargo[cargo] || [];
+      
+      todosBotoes.forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+          btn.style.display = botoesParaExibir.includes(id) ? "flex" : "none";
+        }
+      });
+
+      inicializarDashboard();
+    });
+  </script>
+</body>
+</html>

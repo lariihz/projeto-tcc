@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FundVerso - Relatório de Estoque Baixo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ===================================================================
+           1. Variáveis Globais e Reset (Padrão FundVerso)
+           =================================================================== */
+        :root {
+            --azul-eletrico: #00aaff;
+            --azul-fundo-escuro: #0d1a2e;
+            --azul-fundo-medio: #1a293f;
+            --cinza-texto-claro: #cdd5e0;
+            --cinza-texto-medio: #a0aec0;
+            --branco: #ffffff;
+            --vermelho-erro: #e53e3e; /* Cor de alerta do tema */
+            --sombra-brilhante: 0 0 25px rgba(0, 170, 255, 0.3);
+            --radius-padrao: 12px;
+            --radius-card: 20px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--azul-fundo-escuro);
+            color: var(--cinza-texto-claro);
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        .background-glow {
+            position: fixed; top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 170, 255, 0.1), transparent 40%);
+            pointer-events: none; z-index: -1;
+            transition: transform 0.2s ease-out;
+        }
+        
+        /* ===================================================================
+           2. Estrutura Principal do Relatório
+           =================================================================== */
+        .page-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: var(--azul-fundo-medio);
+            padding: 40px;
+            border-radius: var(--radius-card);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 170, 255, 0.2);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(205, 213, 224, 0.1);
+            padding-bottom: 25px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        h1 {
+            color: var(--vermelho-erro); /* Usando a cor de alerta do tema */
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .btn {
+            padding: 12px 25px; border: none;
+            border-radius: 50px; font-weight: 600;
+            font-size: 0.95rem; cursor: pointer;
+            transition: all 0.3s ease; text-decoration: none;
+            text-align: center; display: inline-block;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--cinza-texto-medio);
+            border: 1px solid var(--cinza-texto-medio);
+        }
+        .btn-secondary:hover {
+            background-color: var(--azul-eletrico);
+            border-color: var(--azul-eletrico);
+            color: var(--branco);
+            transform: translateY(-2px);
+        }
+        
+        /* ===================================================================
+           3. Tabela de Dados
+           =================================================================== */
+        .tabela-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(205, 213, 224, 0.1);
+            white-space: nowrap;
+        }
+        
+        th {
+            background-color: var(--vermelho-erro); /* Cabeçalho destacado */
+            color: var(--branco);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background-color: rgba(255, 255, 255, 0.03); }
+
+        .estoque-baixo {
+            color: var(--vermelho-erro);
+            font-weight: 700;
+        }
+        
+        /* ===================================================================
+           4. Mensagens e Estados
+           =================================================================== */
+        .sem-dados { text-align: center; padding: 50px; font-weight: 500; color: var(--cinza-texto-medio); font-size: 1.1rem; }
+        .sem-dados p { font-size: 1.2rem; }
+        .sem-dados p.success-icon { font-size: 2rem; margin-bottom: 10px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="background-glow"></div>
+
+    <main class="page-container">
+        <header>
+            <h1 id="titulo-relatorio">Relatório de Estoque Baixo</h1>
+            <a href="index.html" class="btn btn-secondary">← Voltar ao Início</a>
+        </header>
+
+        <div id="tabela-container" class="tabela-wrapper hidden">
+            <table id="tabelaEstoqueBaixo">
+                <thead>
+                    <tr>
+                        <th>Nome da Peça</th>
+                        <th>Descrição</th>
+                        <th>Estoque Atual</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="semDadosMsg" class="sem-dados hidden">
+            <p class="success-icon"></p>
+            <p>Nenhuma peça com estoque baixo foi encontrada.</p>
+        </div>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // --- Efeito de brilho no fundo ---
+        const glow = document.querySelector('.background-glow');
+        if (glow) {
+            document.body.addEventListener('mousemove', (e) => {
+                const { clientX, clientY } = e;
+                glow.style.background = `radial-gradient(circle at ${clientX}px ${clientY}px, rgba(0, 170, 255, 0.1), transparent 40%)`;
+            });
+        }
+
+        // --- CONFIGURAÇÃO E REFERÊNCIAS ---
+        const ESTOQUE_MINIMO = 200;
+        const tabelaContainer = document.getElementById('tabela-container');
+        const tabelaBody = document.querySelector('#tabelaEstoqueBaixo tbody');
+        const semDadosMsg = document.getElementById('semDadosMsg');
+        const tituloRelatorio = document.getElementById('titulo-relatorio');
+
+        const getData = (key) => JSON.parse(localStorage.getItem(key)) || [];
+
+        function gerarRelatorioEstoque() {
+            const pecasCadastradas = getData('cadastrosGerais');
+            const todasEntradas = getData('entradasPecas');
+            const todasSaidas = getData('saidasPecas');
+            const estoques = new Map();
+
+            pecasCadastradas.forEach(peca => {
+                estoques.set(peca.id, Number(peca.estoqueInicial) || 0);
+            });
+            todasEntradas.forEach(entrada => {
+                const estoqueAtual = estoques.get(entrada.pecaId) || 0;
+                estoques.set(entrada.pecaId, estoqueAtual + Number(entrada.quantidade));
+            });
+            todasSaidas.forEach(saida => {
+                const estoqueAtual = estoques.get(saida.pecaId) || 0;
+                estoques.set(saida.pecaId, estoqueAtual - Number(saida.quantidade));
+            });
+
+            return pecasCadastradas
+                .map(peca => ({
+                    ...peca,
+                    estoqueAtual: estoques.get(peca.id) || 0
+                }))
+                .filter(peca => peca.estoqueAtual < ESTOQUE_MINIMO)
+                .sort((a, b) => a.estoqueAtual - b.estoqueAtual);
+        }
+
+        function renderizarTabela(pecasParaExibir) {
+            tabelaBody.innerHTML = '';
+            if (pecasParaExibir.length === 0) {
+                tabelaContainer.classList.add('hidden');
+                semDadosMsg.classList.remove('hidden');
+                return;
+            }
+            const linhasHtml = pecasParaExibir.map(peca => `
+                <tr>
+                    <td>${peca.nome}</td>
+                    <td>${peca.descricao || '-'}</td>
+                    <td class="estoque-baixo">${peca.estoqueAtual}</td>
+                </tr>
+            `).join('');
+            tabelaBody.innerHTML = linhasHtml;
+            semDadosMsg.classList.add('hidden');
+            tabelaContainer.classList.remove('hidden');
+        }
+
+        function iniciar() {
+            tituloRelatorio.textContent = `Peças com Estoque Abaixo de ${ESTOQUE_MINIMO}`;
+            const relatorio = gerarRelatorioEstoque();
+            renderizarTabela(relatorio);
+        }
+        iniciar();
+    });
+    </script>
+</body>
+</html>

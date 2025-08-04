@@ -1,0 +1,95 @@
+-- Tabela usuario
+CREATE TABLE usuario (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nome VARCHAR(100) NOT NULL,
+  email VARCHAR(100) NOT NULL UNIQUE,
+  senha VARCHAR(255) NOT NULL,
+  tipo ENUM('admin', 'usuario') DEFAULT 'usuario',
+  criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabela peca
+CREATE TABLE peca (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nome VARCHAR(100) NOT NULL,
+  descricao VARCHAR(255),
+  quantidade INT DEFAULT 0,
+  criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+  atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Tabela entrada
+CREATE TABLE entrada (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  peca_id INT NOT NULL,
+  quantidade INT NOT NULL CHECK (quantidade > 0),
+  data_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
+  usuario_id INT,
+  FOREIGN KEY (peca_id) REFERENCES peca(id),
+  FOREIGN KEY (usuario_id) REFERENCES usuario(id)
+);
+
+-- Tabela saida
+CREATE TABLE saida (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  peca_id INT NOT NULL,
+  quantidade INT NOT NULL CHECK (quantidade > 0),
+  data_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
+  usuario_id INT,
+  FOREIGN KEY (peca_id) REFERENCES peca(id),
+  FOREIGN KEY (usuario_id) REFERENCES usuario(id)
+);
+
+-- Tabela servico
+CREATE TABLE servico (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  peca_id INT NOT NULL,
+  tipo VARCHAR(100) NOT NULL,
+  responsavel VARCHAR(100) NOT NULL,
+  descricao TEXT NOT NULL,
+  data_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
+  usuario_id INT,
+  FOREIGN KEY (peca_id) REFERENCES peca(id),
+  FOREIGN KEY (usuario_id) REFERENCES usuario(id)
+);
+
+-- Tabela pedido
+CREATE TABLE pedido (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  responsavel VARCHAR(100) NOT NULL,
+  peca_id INT NOT NULL,
+  quantidade INT NOT NULL CHECK (quantidade > 0),
+  observacao TEXT,
+  data_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
+  usuario_id INT,
+  FOREIGN KEY (peca_id) REFERENCES peca(id),
+  FOREIGN KEY (usuario_id) REFERENCES usuario(id)
+);
+
+-- Trigger para atualizar estoque após entrada
+DELIMITER $$
+
+CREATE TRIGGER atualiza_estoque_entrada
+AFTER INSERT ON entrada
+FOR EACH ROW
+BEGIN
+  UPDATE peca
+  SET quantidade = quantidade + NEW.quantidade
+  WHERE id = NEW.peca_id;
+END $$
+
+DELIMITER ;
+
+-- Trigger para atualizar estoque após saída
+DELIMITER $$
+
+CREATE TRIGGER atualiza_estoque_saida
+AFTER INSERT ON saida
+FOR EACH ROW
+BEGIN
+  UPDATE peca
+  SET quantidade = quantidade - NEW.quantidade
+  WHERE id = NEW.peca_id;
+END $$
+
+DELIMITER ;

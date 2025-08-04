@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FundVerso - Relatório de Movimentação</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ===================================================================
+           1. Variáveis Globais e Reset (Padrão FundVerso)
+           =================================================================== */
+        :root {
+            --azul-eletrico: #00aaff;
+            --azul-fundo-escuro: #0d1a2e;
+            --azul-fundo-medio: #1a293f;
+            --cinza-texto-claro: #cdd5e0;
+            --cinza-texto-medio: #a0aec0;
+            --branco: #ffffff;
+            --verde-sucesso: #28a745;
+            --vermelho-erro: #e53e3e;
+            --sombra-brilhante: 0 0 25px rgba(0, 170, 255, 0.2);
+            --radius-padrao: 12px;
+            --radius-card: 20px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--azul-fundo-escuro);
+            color: var(--cinza-texto-claro);
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        .background-glow {
+            position: fixed; top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 170, 255, 0.1), transparent 40%);
+            pointer-events: none; z-index: -1;
+            transition: transform 0.2s ease-out;
+        }
+        
+        /* ===================================================================
+           2. Estrutura Principal e Cards
+           =================================================================== */
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        .content-card {
+            background-color: var(--azul-fundo-medio);
+            padding: 30px;
+            border-radius: var(--radius-card);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 170, 255, 0.2);
+            margin-bottom: 30px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        h1 {
+            color: var(--branco);
+            font-size: 2.2rem;
+            font-weight: 600;
+        }
+        
+        /* ===================================================================
+           3. Filtros e Botões
+           =================================================================== */
+        .filtros-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            align-items: flex-end;
+        }
+
+        .filtro-item { display: flex; flex-direction: column; gap: 8px; }
+        
+        label { font-weight: 500; font-size: 0.9rem; color: var(--cinza-texto-medio); }
+
+        select, input[type="date"] {
+            width: 100%;
+            padding: 12px 18px;
+            border-radius: var(--radius-padrao);
+            border: 1px solid var(--azul-fundo-escuro);
+            background: var(--azul-fundo-escuro);
+            color: var(--cinza-texto-claro);
+            font-family: inherit; font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--azul-eletrico);
+            box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
+        }
+        input[type="date"] { color-scheme: dark; }
+        select {
+            appearance: none; -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23a0aec0' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em;
+            cursor: pointer;
+        }
+        select option { background: var(--azul-fundo-escuro); color: var(--cinza-texto-claro); }
+
+        .btn {
+            padding: 12px 25px; border: none;
+            border-radius: 50px; font-weight: 600;
+            font-size: 0.95rem; cursor: pointer;
+            transition: all 0.3s ease; text-decoration: none;
+            text-align: center; display: inline-block;
+            width: 100%;
+        }
+        .btn:hover { transform: translateY(-3px); }
+
+        .btn-success {
+            background: var(--verde-sucesso); color: var(--branco);
+            box-shadow: 0 0 25px rgba(40, 167, 69, 0.3);
+        }
+        .btn-success:hover { box-shadow: 0 0 35px rgba(40, 167, 69, 0.5); }
+        
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--cinza-texto-medio);
+            border: 1px solid var(--cinza-texto-medio);
+        }
+        .btn-secondary:hover {
+            background-color: var(--azul-eletrico);
+            border-color: var(--azul-eletrico);
+            color: var(--branco);
+        }
+        
+        /* ===================================================================
+           4. Tabela de Dados
+           =================================================================== */
+        .tabela-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 16px; text-align: left; border-bottom: 1px solid rgba(205, 213, 224, 0.1); }
+        
+        th {
+            background-color: var(--azul-fundo-escuro);
+            color: var(--branco);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background-color: rgba(255, 255, 255, 0.03); }
+
+        .saldo-positivo { color: var(--verde-sucesso); font-weight: 600; }
+        .saldo-negativo { color: var(--vermelho-erro); font-weight: 600; }
+        
+        /* ===================================================================
+           5. Mensagens e Estados
+           =================================================================== */
+        .sem-dados { text-align: center; padding: 50px; font-weight: 500; color: var(--cinza-texto-medio); font-size: 1.1rem; }
+        .hidden { display: none; }
+
+        .msg-feedback {
+            position: fixed; top: 25px; right: 25px;
+            color: var(--branco); padding: 16px 22px;
+            border-radius: var(--radius-padrao);
+            background-color: var(--azul-fundo-medio);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            font-weight: 500; z-index: 1000;
+            opacity: 0; transform: translateY(-20px);
+            pointer-events: none; transition: all 0.3s ease;
+            border-left: 5px solid;
+        }
+        .msg-feedback.show { opacity: 1; transform: translateY(0); }
+        .msg-feedback.success { border-color: var(--verde-sucesso); }
+        .msg-feedback.error { border-color: var(--vermelho-erro); }
+    </style>
+</head>
+<body>
+    <div class="background-glow"></div>
+
+    <main class="container">
+        <header>
+            <h1>Relatório de Movimentação</h1>
+            <a href="index.html" class="btn btn-secondary">← Voltar ao Dashboard</a>
+        </header>
+
+        <div class="content-card">
+            <div class="filtros-container">
+                <div class="filtro-item">
+                    <label for="selectPecaFiltro">Filtrar por Peça</label>
+                    <select id="selectPecaFiltro">
+                        <option value="">-- Todas as Peças --</option>
+                    </select>
+                </div>
+                <div class="filtro-item">
+                    <label for="dataInicio">Data de Início</label>
+                    <input type="date" id="dataInicio">
+                </div>
+                <div class="filtro-item">
+                    <label for="dataFim">Data de Fim</label>
+                    <input type="date" id="dataFim">
+                </div>
+                <div class="filtro-item">
+                     <label>&nbsp;</label>
+                    <button id="btnExportarPdf" class="btn btn-success">Exportar para PDF</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tabela-container" class="content-card hidden">
+            <div class="tabela-wrapper">
+                <table id="tabelaRelatorio">
+                    <thead>
+                        <tr>
+                            <th>Peça</th>
+                            <th>Total Entradas</th>
+                            <th>Total Saídas</th>
+                            <th>Saldo do Período</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+             <p id="semDadosMsg" class="sem-dados">Nenhum dado encontrado para o filtro selecionado.</p>
+        </div>
+
+        <div id="grafico-container" class="content-card hidden">
+            <canvas id="graficoSaldo"></canvas>
+        </div>
+    </main>
+
+    <div id="feedback" class="msg-feedback"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+    (() => {
+        const refs = {
+            selectPeca: document.getElementById('selectPecaFiltro'),
+            dataInicio: document.getElementById('dataInicio'),
+            dataFim: document.getElementById('dataFim'),
+            btnExportar: document.getElementById('btnExportarPdf'),
+            tabelaBody: document.querySelector('#tabelaRelatorio tbody'),
+            tabelaContainer: document.getElementById('tabela-container'),
+            semDadosMsg: document.getElementById('semDadosMsg'),
+            graficoCanvas: document.getElementById('graficoSaldo'),
+            graficoContainer: document.getElementById('grafico-container'),
+            feedbackDiv: document.getElementById('feedback'),
+            glow: document.querySelector('.background-glow'),
+        };
+        let chartInstance = null;
+        let dadosRelatorio = [];
+        
+        const FUNDVERSO_COLORS = {
+            green: 'rgb(40, 167, 69)',
+            red: 'rgb(229, 62, 62)',
+            textLight: 'rgb(205, 213, 224)',
+            textMedium: 'rgb(160, 174, 192)',
+            grid: 'rgba(255, 255, 255, 0.1)'
+        };
+
+        const mostrarFeedback = (mensagem, tipo = 'success') => {
+            refs.feedbackDiv.textContent = mensagem;
+            refs.feedbackDiv.className = `msg-feedback ${tipo} show`;
+            setTimeout(() => refs.feedbackDiv.classList.remove('show'), 3000);
+        };
+
+        const getData = (key) => JSON.parse(localStorage.getItem(key)) || [];
+
+        const buscarRelatorioMovimentacao = () => {
+            const pecas = getData('cadastrosGerais');
+            const entradas = getData('entradasPecas');
+            const saidas = getData('saidasPecas');
+            
+            const pecaIdFiltro = refs.selectPeca.value;
+            const dataInicioFiltro = refs.dataInicio.value ? new Date(refs.dataInicio.value + 'T00:00:00') : null;
+            const dataFimFiltro = refs.dataFim.value ? new Date(refs.dataFim.value + 'T23:59:59') : null;
+
+            const pecasFiltradas = pecaIdFiltro ? pecas.filter(p => p.id === pecaIdFiltro) : pecas;
+
+            dadosRelatorio = pecasFiltradas.map(peca => {
+                const entradasFiltradas = entradas.filter(e => e.pecaId === peca.id && (!dataInicioFiltro || new Date(e.dataEntrada) >= dataInicioFiltro) && (!dataFimFiltro || new Date(e.dataEntrada) <= dataFimFiltro));
+                const saidasFiltradas = saidas.filter(s => s.pecaId === peca.id && (!dataInicioFiltro || new Date(s.dataSaida) >= dataInicioFiltro) && (!dataFimFiltro || new Date(s.dataSaida) <= dataFimFiltro));
+                
+                const totalEntradas = entradasFiltradas.reduce((acc, curr) => acc + Number(curr.quantidade), 0);
+                const totalSaidas = saidasFiltradas.reduce((acc, curr) => acc + Number(curr.quantidade), 0);
+                
+                return {
+                    pecaNome: peca.nome,
+                    totalEntradas,
+                    totalSaidas,
+                    saldo: totalEntradas - totalSaidas,
+                };
+            }).filter(item => item.totalEntradas > 0 || item.totalSaidas > 0);
+            
+            renderizar();
+        };
+
+        const renderizarTabela = () => {
+             refs.tabelaBody.innerHTML = '';
+            if (dadosRelatorio.length === 0) {
+                refs.semDadosMsg.style.display = 'block';
+                return;
+            }
+            refs.semDadosMsg.style.display = 'none';
+
+            const linhasHtml = dadosRelatorio.map(item => {
+                const saldo = item.saldo ?? 0;
+                let saldoClass = '';
+                if (saldo > 0) saldoClass = 'saldo-positivo';
+                else if (saldo < 0) saldoClass = 'saldo-negativo';
+                return `
+                    <tr>
+                        <td>${item.pecaNome || 'N/D'}</td>
+                        <td>${item.totalEntradas ?? 0}</td>
+                        <td>${item.totalSaidas ?? 0}</td>
+                        <td class="${saldoClass}">${saldo}</td>
+                    </tr>
+                `;
+            }).join('');
+            refs.tabelaBody.innerHTML = linhasHtml;
+        };
+
+        const renderizarGrafico = () => {
+            if (chartInstance) chartInstance.destroy();
+            if (dadosRelatorio.length === 0) {
+                refs.graficoContainer.classList.add('hidden');
+                return;
+            }
+
+            const labels = dadosRelatorio.map(d => d.pecaNome || 'N/D');
+            const saldoData = dadosRelatorio.map(d => d.saldo ?? 0);
+
+            chartInstance = new Chart(refs.graficoCanvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Saldo no Período',
+                        data: saldoData,
+                        backgroundColor: saldoData.map(s => s >= 0 ? FUNDVERSO_COLORS.green : FUNDVERSO_COLORS.red),
+                        borderColor: saldoData.map(s => s >= 0 ? FUNDVERSO_COLORS.green : FUNDVERSO_COLORS.red),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        title: { 
+                            display: true, 
+                            text: 'Saldo de Peças no Período',
+                            color: FUNDVERSO_COLORS.textLight,
+                            font: { size: 16, family: "'Poppins', sans-serif" }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: FUNDVERSO_COLORS.grid },
+                            ticks: { color: FUNDVERSO_COLORS.textMedium }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: FUNDVERSO_COLORS.textMedium }
+                        }
+                    }
+                }
+            });
+            refs.graficoContainer.classList.remove('hidden');
+        };
+        
+        const renderizar = () => {
+             if (dadosRelatorio.length > 0) {
+                 refs.tabelaContainer.classList.remove('hidden');
+             } else {
+                 refs.tabelaContainer.classList.add('hidden');
+             }
+            renderizarTabela();
+            renderizarGrafico();
+        };
+
+        const exportarParaPdf = () => {
+            if (dadosRelatorio.length === 0) {
+                mostrarFeedback('Nenhum dado para exportar.', 'error');
+                return;
+            }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(18);
+            doc.text("Relatório de Movimentação de Peças", 14, 22);
+            doc.setFontSize(10);
+            const periodo = `Período: ${refs.dataInicio.value || 'Início'} a ${refs.dataFim.value || 'Fim'}`;
+            const pecaSelecionada = refs.selectPeca.options[refs.selectPeca.selectedIndex].text;
+            const filtroPeca = refs.selectPeca.value ? ` | Peça: ${pecaSelecionada}` : '';
+            doc.text(periodo + filtroPeca, 14, 30);
+            
+            doc.autoTable({
+                startY: 35,
+                head: [["Peça", "Total Entradas", "Total Saídas", "Saldo do Período"]],
+                body: dadosRelatorio.map(item => [
+                    item.pecaNome || 'N/D', item.totalEntradas ?? 0,
+                    item.totalSaidas ?? 0, item.saldo ?? 0
+                ]),
+            });
+            doc.save('relatorio_movimentacao.pdf');
+        };
+
+        const carregarPecasFiltro = () => {
+            const pecas = getData('cadastrosGerais');
+            pecas.forEach(p => refs.selectPeca.add(new Option(p.nome, p.id)));
+        };
+
+        const setupEventListeners = () => {
+            refs.selectPeca.addEventListener('change', buscarRelatorioMovimentacao);
+            refs.dataInicio.addEventListener('change', buscarRelatorioMovimentacao);
+            refs.dataFim.addEventListener('change', buscarRelatorioMovimentacao);
+            refs.btnExportar.addEventListener('click', exportarParaPdf);
+            
+            if (refs.glow) {
+                document.body.addEventListener('mousemove', (e) => {
+                    const { clientX, clientY } = e;
+                    refs.glow.style.background = `radial-gradient(circle at ${clientX}px ${clientY}px, rgba(0, 170, 255, 0.1), transparent 40%)`;
+                });
+            }
+        };
+
+        const iniciar = () => {
+            carregarPecasFiltro();
+            buscarRelatorioMovimentacao();
+            setupEventListeners();
+        };
+
+        iniciar();
+    })();
+    </script>
+</body>
+</html>

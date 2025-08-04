@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FundVerso - Login</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===================================================================
+           1. Variáveis Globais e Reset (Importado do site principal)
+           =================================================================== */
+        :root {
+            --azul-eletrico: #00aaff;
+            --azul-fundo-escuro: #0d1a2e;
+            --azul-fundo-medio: #1a293f;
+            --cinza-texto-claro: #cdd5e0;
+            --cinza-texto-medio: #a0aec0;
+            --branco: #ffffff;
+            --sombra-brilhante: 0 0 25px rgba(0, 170, 255, 0.3);
+            --radius-padrao: 12px;
+            --radius-card: 20px;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--azul-fundo-escuro);
+            color: var(--cinza-texto-claro);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+            position: relative;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        a {
+            text-decoration: none;
+        }
+        
+        /* ===================================================================
+           2. Efeitos Visuais (Importado do site principal)
+           =================================================================== */
+        .background-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 170, 255, 0.1), transparent 40%);
+            pointer-events: none;
+            z-index: -1;
+            transition: transform 0.2s ease-out;
+        }
+        
+        /* ===================================================================
+           3. Estilos da Caixa de Login
+           =================================================================== */
+        .login-container {
+            background-color: var(--azul-fundo-medio);
+            padding: 40px 35px;
+            border-radius: var(--radius-card);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            border: 1px solid rgba(0, 170, 255, 0.2);
+        }
+
+        .login-logo {
+            font-size: 32px;
+            font-weight: 600;
+            color: var(--branco);
+            margin-bottom: 10px;
+        }
+
+        .login-container h1 {
+            font-size: 1.2rem;
+            font-weight: 400;
+            color: var(--cinza-texto-medio);
+            margin-bottom: 30px;
+        }
+        
+        /* ===================================================================
+           4. Formulário (Estilo FundVerso)
+           =================================================================== */
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        form input,
+        form select {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 1rem;
+            border-radius: var(--radius-padrao);
+            border: 1px solid var(--azul-fundo-escuro);
+            background: var(--azul-fundo-escuro);
+            color: var(--cinza-texto-claro);
+            font-family: 'Poppins', sans-serif;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        form input::placeholder {
+            color: var(--cinza-texto-medio);
+        }
+
+        form input:focus,
+        form select:focus {
+            outline: none;
+            border-color: var(--azul-eletrico);
+            box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
+        }
+        
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23a0aec0' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+            cursor: pointer;
+        }
+
+        select option {
+            background: var(--azul-fundo-escuro);
+            color: var(--cinza-texto-claro);
+        }
+
+        .cta-button {
+            padding: 16px 40px;
+            background: var(--azul-eletrico);
+            border: none;
+            border-radius: 50px;
+            color: var(--branco);
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: var(--sombra-brilhante);
+            transition: all 0.3s ease;
+            margin-top: 10px; /* Espaçamento */
+        }
+
+        .cta-button:hover,
+        .cta-button:focus {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 0 35px rgba(0, 170, 255, 0.5);
+        }
+
+        #btnVoltar {
+            width: 100%;
+            padding: 14px 20px;
+            margin-top: 15px;
+            font-weight: 500;
+            font-size: 1rem;
+            border-radius: 50px;
+            border: 1px solid var(--cinza-texto-medio);
+            background-color: transparent;
+            color: var(--cinza-texto-medio);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        #btnVoltar:hover {
+            background-color: var(--azul-eletrico);
+            border-color: var(--azul-eletrico);
+            color: var(--branco);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0, 170, 255, 0.2);
+        }
+        
+        /* ===================================================================
+           5. Modal de Feedback (Estilo FundVerso)
+           =================================================================== */
+        .modal {
+            position: fixed;
+            z-index: 2000;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0s 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal-content {
+            background-color: var(--azul-fundo-medio);
+            padding: 40px;
+            border-radius: var(--radius-card);
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+            position: relative;
+            border: 1px solid var(--azul-eletrico);
+            transform: translateY(-30px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+        
+        .modal-content .icon {
+            width: 60px; height: 60px;
+            color: var(--azul-eletrico);
+            margin: 0 auto 20px;
+        }
+
+        .modal-content h3 {
+            color: var(--branco);
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+        .modal-content p {
+            font-size: 1.1rem;
+            color: var(--cinza-texto-claro);
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-glow"></div>
+
+    <div class="login-container">
+        <div class="login-logo">FundVerso</div>
+        <h1>Acesse a plataforma</h1>
+        
+
+        <form id="formLogin">
+            <input type="email" id="email" placeholder="Seu e-mail" required autocomplete="username" />
+            <input type="password" id="senha" placeholder="Sua senha" required autocomplete="current-password" />
+            <select id="cargo" required>
+                <option value="" disabled selected>Selecione seu cargo</option>
+                <option value="GERENTE">Gerente</option>
+                <option value="ALMOXARIFE">Almoxarife</option>
+                <option value="FUNCIONARIO">Funcionário</option>
+            </select>
+
+            <button type="submit" class="cta-button">Entrar</button>
+        </form>
+        
+        <button id="btnVoltar">← Voltar para o início</button>
+    </div>
+
+    <div id="msgBemVindoModal" class="modal">
+        <div class="modal-content">
+            <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <h3 id="modalTitle"></h3>
+            <p id="modalDesc"></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- Efeito de brilho no fundo ---
+            const glow = document.querySelector('.background-glow');
+            if (glow) {
+                document.body.addEventListener('mousemove', (e) => {
+                    const { clientX, clientY } = e;
+                    glow.style.background = `radial-gradient(circle at ${clientX}px ${clientY}px, rgba(0, 170, 255, 0.1), transparent 40%)`;
+                });
+            }
+
+            // --- Lógica do Botão Voltar ---
+            const btnVoltar = document.getElementById('btnVoltar');
+            if(btnVoltar) {
+                btnVoltar.addEventListener('click', () => {
+                    window.location.href = 'inicio.html';
+                });
+            }
+
+            // --- Lógica do formulário de login e modal ---
+            const form = document.getElementById('formLogin');
+            const modal = document.getElementById('msgBemVindoModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalDesc = document.getElementById('modalDesc');
+
+            form.addEventListener('submit', async function (event) {
+                event.preventDefault();
+
+                const email = document.getElementById('email').value;
+                const senha = document.getElementById('senha').value;
+                const cargo = document.getElementById('cargo').value;
+
+                try {
+                    const resp = await fetch('http://localhost:8080/api/usuarios/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, senha, cargo })
+                    });
+
+                    if (!resp.ok) {
+                        const erro = await resp.text();
+                        alert('Falha no login: ' + erro);
+                        return;
+                    }
+
+                    const usuario = await resp.json();
+
+                    modalTitle.textContent = `Bem-vindo(a), ${usuario.nome}!`;
+                    modalDesc.textContent = `Redirecionando para a plataforma...`;
+                    modal.classList.add('show');
+
+                    setTimeout(() => {
+                        localStorage.setItem('usuarioLogado', JSON.stringify(usuario));
+                        window.location.href = 'index.html'; // Altere se a página principal for outra
+                    }, 2500);
+
+                } catch (error) {
+                    console.error('Erro de conexão:', error);
+                    modalTitle.textContent = `Erro de Conexão`;
+                    modalDesc.textContent = `Não foi possível conectar ao servidor. Tente novamente.`;
+                    modal.classList.add('show');
+                    setTimeout(() => modal.classList.remove('show'), 4000);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
